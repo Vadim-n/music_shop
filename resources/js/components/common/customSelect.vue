@@ -1,8 +1,13 @@
 <template>
     <div class="form-group">
-        <select :multiple="multiple" class="form-control" :class="{'form-control-sm': isSm}" id="exampleFormControlSelect1" v-model="result"
+        <select :multiple="multiple" class="form-control" :class="{'form-control-sm': isSm}"
+                :size="size"
+                id="exampleFormControlSelect1" v-model="result"
                 @change="returnInput($event)">
-            <option v-for="option in options" :value="option.value" :data-name="option.label">{{option.label}}</option>
+            <option v-if="!multiple && clearChoice" value="">Очистить выбор</option>
+            <option v-for="option in options" :value="option.value" :data-name="option.label">
+                {{'-'.repeat(option.level)}}{{option.label}}
+            </option>
         </select>
     </div>
 </template>
@@ -28,7 +33,14 @@
             },
             isSm: {
                 type: Boolean
-            }
+            },
+            size: {
+                default: null
+            },
+            clearChoice: {
+                type: Boolean,
+                default: false,
+            },
         },
         data() {
             return {
@@ -51,7 +63,7 @@
                     let result = _.find(this.options, option => {
                         return option.value == this.result;
                     });
-                    result = result ? result : {};
+                    result = result ? result : null;
                     this.$emit('change', result);
                     return;
                 } else {

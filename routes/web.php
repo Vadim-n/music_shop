@@ -13,6 +13,7 @@
 
 
 Route::get('/', 'FrontController@index')->name('main');
+Route::get('/contacts', 'FrontController@contacts')->name('contacts');
 
 Auth::routes();
 

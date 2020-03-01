@@ -28,8 +28,13 @@
                        placeholder="Генерировать автоматически" id="alias" name="alias">
             </div>
             <div class="form-group">
-                <label for="shortName">Короткое наименование</label>
-                <input type="text" class="form-control" id="shortName" name="shortName" v-model="category.short_name">
+                <label for="alias">Родительская категория</label>
+                <custom-select
+                    v-model="category.parent"
+                    :size="categories.length"
+                    :clear-choice="true"
+                    :options="categories">
+                </custom-select>
             </div>
             <div class="form-group">
                 <label for="description">Описание</label>
@@ -77,12 +82,22 @@
             }
         },
         created() {
+            this.$http.get('/api/categories/list').then(response => {
+                this.flattenOptions(response.data.categories, 0);
+                if (this.categoryId) {
+                    _.remove(this.categories, category => {
+                        return category.value === this.categoryId;
+                    });
+                }
+            });
+
             if (this.categoryId) {
                 this.loading = true;
                 this.$http.get('/api/category/' + this.categoryId).then(response => {
                     if (response.status === 200) {
                         this.category = response.data.category;
                         this.category.image = response.data.image;
+                        this.category.parent = response.data.parent;
                         this.loading = false;
                     } else {
                         window.location = '/admin/categories';
@@ -103,7 +118,9 @@
                     alias: "",
                     is_active: true,
                     image: null,
+                    parent: null,
                 },
+                categories: [],
                 saving: false,
                 loading: false,
                 toolbarOptions: [
@@ -159,6 +176,11 @@
                                 form_data.append(key, this.category[key].file);
                                 continue;
                             }
+                            
+                            if (key === 'parent' && typeof(this.category[key]) === 'object') {
+                                form_data.append(key, this.category[key].value);
+                                continue;
+                            }
 
                             form_data.append(key, this.category[key]);
                         }
@@ -204,7 +226,18 @@
             },
             deleteImage() {
                 this.category.image = null;
-            }
+            },
+            flattenOptions(options, level) {
+                _.forEach(options, option => {
+                    this.categories.push({
+                        value: option.value,
+                        label: option.label,
+                        level: level,
+                    });
+
+                    this.flattenOptions(option.children, level + 1);
+                });
+            },
         },
     }
 </script>

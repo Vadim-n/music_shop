@@ -62,8 +62,8 @@
                         sortDir: 'asc'
                     },
                     {
-                        name: 'short_name',
-                        title: 'Короткое наименование',
+                        name: 'parent_name',
+                        title: 'Родитель',
                         format: 'text',
                         sortable: true,
                         searchable: true,

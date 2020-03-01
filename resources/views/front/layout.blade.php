@@ -50,7 +50,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
                     <li class="active grid"><a class="color8" href="index.html">Каталог</a></li>
                     <li><a class="color1" href="#">О компании</a>
                     </li>
-                    <li><a class="color1" href="#">Контакты</a>
+                    <li><a class="color1" href="/contacts">Контакты</a>
                     </li>
                 </ul>
             </div>
@@ -120,6 +120,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
     </div>
     <!---->
 </div>
+@yield('map')
 <div class="footer">
     <div class="container">
         <div class="footer-top-at">

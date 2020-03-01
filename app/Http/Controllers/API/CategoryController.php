@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\CategoryRepository;
 use App\Services\CategoryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -55,6 +56,7 @@ class CategoryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required',
+            'parent' => 'nullable|exists:categories,id'
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -139,6 +141,14 @@ class CategoryController extends Controller
     public function get($categoryId)
     {
         $category = Category::find($categoryId);
+        $parent = DB::table('categories')
+            ->where('is_active', true)
+            ->where('id', $category->parent_id)
+            ->select(
+                'id as value',
+                'name as label'
+            )
+            ->first();
 
         if ($category->image) {
             $image = [
@@ -147,7 +157,7 @@ class CategoryController extends Controller
             ];
         }
 
-        return response()->json(compact('category', 'image'), 200);
+        return response()->json(compact('category', 'image', 'parent'), 200);
     }
 
     public function activate($categoryId)
@@ -214,7 +224,7 @@ class CategoryController extends Controller
     public function list(CategoryRepository $categoryRepository)
     {
         return response()->json([
-            'categories' => $categoryRepository->listForProduct(),
+            'categories' => $categoryRepository->getTree(),
         ]);
     }
 }

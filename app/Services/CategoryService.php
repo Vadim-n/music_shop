@@ -90,6 +90,7 @@ class CategoryService
             $category->is_active = $request->is_active === 'true' || $request->is_active == 1;
             $category->created_by = Auth::user()->id;
             $category->alias = $alias;
+            $category->parent_id = isset($request->parent) ? $request->parent : null;
             $category->save();
         } catch (\Exception $exception) {
             DB::rollBack();

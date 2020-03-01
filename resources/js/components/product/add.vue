@@ -44,6 +44,7 @@
                 <custom-select
                     :multiple="true"
                     v-model="product.categories"
+                    :size="categories.length"
                     :options="categories">
                 </custom-select>
             </div>
@@ -51,10 +52,6 @@
                 <label for="alias">Алиас</label>
                 <input v-model="product.alias" type="text" class="form-control"
                        placeholder="Генерировать автоматически" id="alias" name="alias">
-            </div>
-            <div class="form-group">
-                <label for="shortName">Короткое наименование</label>
-                <input type="text" class="form-control" id="shortName" name="shortName" v-model="product.short_name">
             </div>
             <div class="form-group">
                 <label for="description">Описание</label>
@@ -110,7 +107,7 @@
         },
         created() {
             this.$http.get('/api/categories/list').then(response => {
-                this.categories = response.data.categories;
+                this.flattenOptions(response.data.categories, 0)
             });
 
             if (this.productId) {
@@ -301,6 +298,17 @@
                 }
 
                 this.product.images.splice(index, 1);
+            },
+            flattenOptions(options, level) {
+                _.forEach(options, option => {
+                    this.categories.push({
+                        value: option.value,
+                        label: option.label,
+                        level: level,
+                    });
+
+                    this.flattenOptions(option.children, level + 1);
+                });
             },
         },
     }

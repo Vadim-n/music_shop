@@ -25,7 +25,7 @@ class CategoryRepository extends BaseRepository
             'alias' => 'c.alias',
             'creator_name' => 'u.name',
             'is_active' => 'c.is_active',
-            'p.name' => 'p.name'
+            'parent_name' => 'p.name'
         ];
 
         $categories = DB::table('categories as c')
@@ -44,7 +44,7 @@ class CategoryRepository extends BaseRepository
                 'c.alias',
                 'u.name as creator_name',
                 'c.is_active',
-                'p.name'
+                'p.name as parent_name'
             )
             ->when(
                 $request->has('$orderBy'),
@@ -77,10 +77,18 @@ class CategoryRepository extends BaseRepository
             });
     }
 
-    public function listForProduct()
+    public function getTree()
     {
-        return DB::table('categories')
+        return $this->getChildren();
+    }
+
+    private function getChildren(?\stdClass $category = null)
+    {
+        $categoryId = $category ? $category->value : null;
+
+        $categories = DB::table('categories')
             ->where('is_active', true)
+            ->where('parent_id', $categoryId)
             ->orderBy('order')
             ->select(
                 'id as value',
@@ -89,9 +97,18 @@ class CategoryRepository extends BaseRepository
             ->get()
             ->transform(function ($item) {
                 $item->label = "{$item->name} - #{$item->value}";
+                $item->children = [];
+
                 unset($item->name);
+
                 return $item;
             });
+
+        foreach ($categories as $c) {
+            $c->children = $this->getChildren($c);
+        }
+
+        return $categories;
     }
 
     public function clientList()

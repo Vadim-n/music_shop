@@ -2333,6 +2333,13 @@ module.exports = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+//
+//
+//
+//
+//
 //
 //
 //
@@ -2413,12 +2420,23 @@ __webpack_require__.r(__webpack_exports__);
   created: function created() {
     var _this = this;
 
+    this.$http.get('/api/categories/list').then(function (response) {
+      _this.flattenOptions(response.data.categories, 0);
+
+      if (_this.categoryId) {
+        _.remove(_this.categories, function (category) {
+          return category.value === _this.categoryId;
+        });
+      }
+    });
+
     if (this.categoryId) {
       this.loading = true;
       this.$http.get('/api/category/' + this.categoryId).then(function (response) {
         if (response.status === 200) {
           _this.category = response.data.category;
           _this.category.image = response.data.image;
+          _this.category.parent = response.data.parent;
           _this.loading = false;
         } else {
           window.location = '/admin/categories';
@@ -2438,8 +2456,10 @@ __webpack_require__.r(__webpack_exports__);
         description: "",
         alias: "",
         is_active: true,
-        image: null
+        image: null,
+        parent: null
       },
+      categories: [],
       saving: false,
       loading: false,
       toolbarOptions: [[{
@@ -2503,6 +2523,11 @@ __webpack_require__.r(__webpack_exports__);
               continue;
             }
 
+            if (key === 'parent' && _typeof(_this2.category[key]) === 'object') {
+              form_data.append(key, _this2.category[key].value);
+              continue;
+            }
+
             form_data.append(key, _this2.category[key]);
           }
 
@@ -2548,6 +2573,19 @@ __webpack_require__.r(__webpack_exports__);
     },
     deleteImage: function deleteImage() {
       this.category.image = null;
+    },
+    flattenOptions: function flattenOptions(options, level) {
+      var _this4 = this;
+
+      _.forEach(options, function (option) {
+        _this4.categories.push({
+          value: option.value,
+          label: option.label,
+          level: level
+        });
+
+        _this4.flattenOptions(option.children, level + 1);
+      });
     }
   }
 });
@@ -2621,8 +2659,8 @@ __webpack_require__.r(__webpack_exports__);
         width: '10%',
         sortDir: 'asc'
       }, {
-        name: 'short_name',
-        title: 'Короткое наименование',
+        name: 'parent_name',
+        title: 'Родитель',
         format: 'text',
         sortable: true,
         searchable: true,
@@ -3027,6 +3065,11 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: "customSelect",
   model: {
@@ -3047,6 +3090,13 @@ __webpack_require__.r(__webpack_exports__);
     },
     isSm: {
       type: Boolean
+    },
+    size: {
+      "default": null
+    },
+    clearChoice: {
+      type: Boolean,
+      "default": false
     }
   },
   data: function data() {
@@ -3073,7 +3123,7 @@ __webpack_require__.r(__webpack_exports__);
           return option.value == _this.result;
         });
 
-        result = result ? result : {};
+        result = result ? result : null;
         this.$emit('change', result);
         return;
       } else {
@@ -5341,9 +5391,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     productId: {
@@ -5354,7 +5401,7 @@ __webpack_require__.r(__webpack_exports__);
     var _this = this;
 
     this.$http.get('/api/categories/list').then(function (response) {
-      _this.categories = response.data.categories;
+      _this.flattenOptions(response.data.categories, 0);
     });
 
     if (this.productId) {
@@ -5571,6 +5618,19 @@ __webpack_require__.r(__webpack_exports__);
       }
 
       this.product.images.splice(index, 1);
+    },
+    flattenOptions: function flattenOptions(options, level) {
+      var _this4 = this;
+
+      _.forEach(options, function (option) {
+        _this4.categories.push({
+          value: option.value,
+          label: option.label,
+          level: level
+        });
+
+        _this4.flattenOptions(option.children, level + 1);
+      });
     }
   }
 });
@@ -5652,14 +5712,6 @@ __webpack_require__.r(__webpack_exports__);
         sortable: true,
         searchable: true,
         width: '10%',
-        sortDir: 'asc'
-      }, {
-        name: 'short_name',
-        title: 'Короткое наименование',
-        format: 'text',
-        sortable: true,
-        searchable: true,
-        width: '7%',
         sortDir: 'asc'
       }, {
         name: 'alias',
@@ -84797,33 +84849,31 @@ var render = function() {
           })
         ]),
         _vm._v(" "),
-        _c("div", { staticClass: "form-group" }, [
-          _c("label", { attrs: { for: "shortName" } }, [
-            _vm._v("Короткое наименование")
-          ]),
-          _vm._v(" "),
-          _c("input", {
-            directives: [
-              {
-                name: "model",
-                rawName: "v-model",
-                value: _vm.category.short_name,
-                expression: "category.short_name"
+        _c(
+          "div",
+          { staticClass: "form-group" },
+          [
+            _c("label", { attrs: { for: "alias" } }, [
+              _vm._v("Родительская категория")
+            ]),
+            _vm._v(" "),
+            _c("custom-select", {
+              attrs: {
+                size: _vm.categories.length,
+                "clear-choice": true,
+                options: _vm.categories
+              },
+              model: {
+                value: _vm.category.parent,
+                callback: function($$v) {
+                  _vm.$set(_vm.category, "parent", $$v)
+                },
+                expression: "category.parent"
               }
-            ],
-            staticClass: "form-control",
-            attrs: { type: "text", id: "shortName", name: "shortName" },
-            domProps: { value: _vm.category.short_name },
-            on: {
-              input: function($event) {
-                if ($event.target.composing) {
-                  return
-                }
-                _vm.$set(_vm.category, "short_name", $event.target.value)
-              }
-            }
-          })
-        ]),
+            })
+          ],
+          1
+        ),
         _vm._v(" "),
         _c(
           "div",
@@ -85284,7 +85334,11 @@ var render = function() {
         ],
         staticClass: "form-control",
         class: { "form-control-sm": _vm.isSm },
-        attrs: { multiple: _vm.multiple, id: "exampleFormControlSelect1" },
+        attrs: {
+          multiple: _vm.multiple,
+          size: _vm.size,
+          id: "exampleFormControlSelect1"
+        },
         on: {
           change: [
             function($event) {
@@ -85306,17 +85360,30 @@ var render = function() {
           ]
         }
       },
-      _vm._l(_vm.options, function(option) {
-        return _c(
-          "option",
-          {
-            attrs: { "data-name": option.label },
-            domProps: { value: option.value }
-          },
-          [_vm._v(_vm._s(option.label))]
-        )
-      }),
-      0
+      [
+        !_vm.multiple && _vm.clearChoice
+          ? _c("option", { attrs: { value: "" } }, [_vm._v("Очистить выбор")])
+          : _vm._e(),
+        _vm._v(" "),
+        _vm._l(_vm.options, function(option) {
+          return _c(
+            "option",
+            {
+              attrs: { "data-name": option.label },
+              domProps: { value: option.value }
+            },
+            [
+              _vm._v(
+                "\n            " +
+                  _vm._s("-".repeat(option.level)) +
+                  _vm._s(option.label) +
+                  "\n        "
+              )
+            ]
+          )
+        })
+      ],
+      2
     )
   ])
 }
@@ -87941,7 +88008,11 @@ var render = function() {
             _c("label", { attrs: { for: "alias" } }, [_vm._v("Категории")]),
             _vm._v(" "),
             _c("custom-select", {
-              attrs: { multiple: true, options: _vm.categories },
+              attrs: {
+                multiple: true,
+                size: _vm.categories.length,
+                options: _vm.categories
+              },
               model: {
                 value: _vm.product.categories,
                 callback: function($$v) {
@@ -87980,34 +88051,6 @@ var render = function() {
                   return
                 }
                 _vm.$set(_vm.product, "alias", $event.target.value)
-              }
-            }
-          })
-        ]),
-        _vm._v(" "),
-        _c("div", { staticClass: "form-group" }, [
-          _c("label", { attrs: { for: "shortName" } }, [
-            _vm._v("Короткое наименование")
-          ]),
-          _vm._v(" "),
-          _c("input", {
-            directives: [
-              {
-                name: "model",
-                rawName: "v-model",
-                value: _vm.product.short_name,
-                expression: "product.short_name"
-              }
-            ],
-            staticClass: "form-control",
-            attrs: { type: "text", id: "shortName", name: "shortName" },
-            domProps: { value: _vm.product.short_name },
-            on: {
-              input: function($event) {
-                if ($event.target.composing) {
-                  return
-                }
-                _vm.$set(_vm.product, "short_name", $event.target.value)
               }
             }
           })

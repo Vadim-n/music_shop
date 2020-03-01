@@ -1,3 +1,4 @@
 *
 !public/
 !.gitignore
+!initial_data.json

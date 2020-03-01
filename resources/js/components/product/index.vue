@@ -70,15 +70,6 @@
                         sortDir: 'asc'
                     },
                     {
-                        name: 'short_name',
-                        title: 'Короткое наименование',
-                        format: 'text',
-                        sortable: true,
-                        searchable: true,
-                        width: '7%',
-                        sortDir: 'asc'
-                    },
-                    {
                         name: 'alias',
                         title: 'Алиас',
                         format: 'text',
