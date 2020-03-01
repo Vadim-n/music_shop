@@ -1,0 +1,189 @@
+<?php
+
+
+namespace App\Services;
+
+
+use App\Category;
+use App\Document;
+use App\Exceptions\ProductException;
+use App\Helpers\AliasTrait;
+use App\Product;
+use App\Repositories\ProductRepository;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use PhpParser\Comment\Doc;
+use Webpatser\Uuid\Uuid;
+
+class ProductService
+{
+    use AliasTrait;
+
+    /**
+     * @var DocumentStorage
+     */
+    private $documentStorage;
+
+    /**
+     * @var ProductRepository
+     */
+    private $productRepository;
+
+    public function __construct(DocumentStorage $documentStorage, ProductRepository $productRepository)
+    {
+        $this->documentStorage = $documentStorage;
+        $this->productRepository = $productRepository;
+    }
+
+    /**
+     * @param Request $request
+     * @param int|null $productId
+     * @return Product
+     * @throws ProductException
+     */
+    public function editProduct(Request $request, ?int $productId = null): Product
+    {
+        $product = $productId ? $product = Product::find($productId) : new Product();
+
+        if (!$product) {
+            throw new ProductException("Product $productId has not been found");
+        }
+
+        DB::beginTransaction();
+        try {
+            $alias = $this->checkAliasExistance(
+                Product::class,
+                $request->alias ? $request->alias : $this->getAlias($request->name),
+                $productId
+            );
+
+            $product->name = $request->name;
+
+            if ($request->price && $request->price >= 1) {
+                $product->price = $request->price;
+            }
+
+            $product->short_name = $request->short_name;
+            $product->description = $request->description;
+            $product->is_active = $request->is_active === 'true' || $request->is_active === '1';
+            $product->created_by = Auth::user()->id;
+            $product->alias = $alias;
+            $product->save();
+
+//            Categories
+            $productCategories = $this->productRepository->getProductActiveCategories($product->id);
+
+            $updatedCategories = explode(',', $request->categories);
+            foreach ($productCategories as $productCategory) {
+                if (!in_array($productCategory->category_id, $updatedCategories)) {
+                    $product->categories()->detach($productCategory->category_id);
+                    continue;
+                }
+
+                $index = array_search($productCategory->category_id, $updatedCategories);
+
+                if ($index !== false) {
+                    unset($updatedCategories[$index]);
+                }
+            }
+
+            foreach ($updatedCategories as $updatedCategory) {
+                $category = Category::find($updatedCategory);
+                $product->categories()->save($category);
+            }
+
+//            Images
+            $oldImagesIds = explode(',', $request->old_images);
+
+            $documentIds = DB::table('document_product')
+                ->where('product_id', $product->id)
+                ->whereNotIn('document_id', $oldImagesIds)
+                ->select('document_id')
+                ->get();
+
+            foreach ($documentIds as $item) {
+                $document = Document::find($item->document_id);
+
+                Storage::disk(DocumentStorage::LOCAL_DISK)->delete($document->getFullPath());
+
+                $document->delete();
+            }
+
+            $oldImages = Document::whereIn('id', $oldImagesIds)->get();
+
+            foreach ($oldImages as $index => $image) {
+                DB::table('document_product')
+                    ->where('product_id', $product->id)
+                    ->where('document_id', $image->id)
+                    ->update([
+                        'is_main' => $index === (int)$request->main_image_index,
+                        'updated_at' => new \DateTime(),
+                    ]);
+            }
+
+            foreach ($request->allFiles() as $index => $file) {
+                $document = new Document();
+                $document->name = Uuid::generate(4);
+                $document->extension = $file->getClientOriginalExtension();
+                $document->collection = DocumentStorage::COLLECTION_PRODUCTS;
+                $document->type = Document::TYPE_IMAGE;
+                $document->created_by = Auth::user()->id;
+
+                $path = $file->storeAs(
+                    $document->collection,
+                    $document->getFullName(),
+                    [
+                        'disk' => DocumentStorage::LOCAL_DISK,
+                    ]
+                );
+
+                $document->setTempPath($path);
+                $document->setIsMain($index === (int)$request->main_image_index);
+
+                $product->documents()->save($document, ['is_main' => $document->isMain()]);
+            }
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+        DB::commit();
+
+        return $product;
+    }
+
+    /**
+     * @param Product $product
+     */
+    public function toggleActivation(Product $product)
+    {
+        $product->is_active = !$product->is_active;
+        $product->save();
+    }
+
+    public function order(Request $request, int $categoryId): void
+    {
+        DB::beginTransaction();
+        $category = Category::find($categoryId);
+
+        if (!$category) {
+            DB::rollBack();
+            throw new ProductException("Category #{$categoryId} has not been found");
+        }
+
+        $order = 0;
+        foreach ($request->products as $item) {
+
+            $category->products()->updateExistingPivot(
+                $item['id'],
+                [
+                    'order' => $order,
+                ]
+            );
+
+            $order++;
+        }
+        DB::commit();
+    }
+}
