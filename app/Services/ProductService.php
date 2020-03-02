@@ -43,7 +43,7 @@ class ProductService
      * @return Product
      * @throws ProductException
      */
-    public function editProduct(Request $request, ?int $productId = null): Product
+    public function editProduct(array $params, array $files, ?int $productId = null): Product
     {
         $product = $productId ? $product = Product::find($productId) : new Product();
 
@@ -55,27 +55,27 @@ class ProductService
         try {
             $alias = $this->checkAliasExistance(
                 Product::class,
-                $request->alias ? $request->alias : $this->getAlias($request->name),
+                $params['alias'] ? $params['alias'] : $this->getAlias($params['name']),
                 $productId
             );
 
-            $product->name = $request->name;
+            $product->name = $params['name'];
 
-            if ($request->price && $request->price >= 1) {
-                $product->price = $request->price;
+            if ($params['price'] && $params['price'] >= 1) {
+                $product->price = $params['price'];
             }
 
-            $product->short_name = $request->short_name;
-            $product->description = $request->description;
-            $product->is_active = $request->is_active === 'true' || $request->is_active === '1';
-            $product->created_by = Auth::user()->id;
+            $product->short_name = isset($params['short_name']) ? $params['short_name'] : null;
+            $product->description = $params['description'];
+            $product->is_active = $params['is_active'] === 'true' || $params['is_active'] === '1';
+            $product->created_by = Auth::user() ? Auth::user()->id : 1;
             $product->alias = $alias;
             $product->save();
 
 //            Categories
             $productCategories = $this->productRepository->getProductActiveCategories($product->id);
 
-            $updatedCategories = explode(',', $request->categories);
+            $updatedCategories = explode(',', $params['categories']);
             foreach ($productCategories as $productCategory) {
                 if (!in_array($productCategory->category_id, $updatedCategories)) {
                     $product->categories()->detach($productCategory->category_id);
@@ -95,7 +95,7 @@ class ProductService
             }
 
 //            Images
-            $oldImagesIds = explode(',', $request->old_images);
+            $oldImagesIds = explode(',', $params['old_images']);
 
             $documentIds = DB::table('document_product')
                 ->where('product_id', $product->id)
@@ -118,12 +118,12 @@ class ProductService
                     ->where('product_id', $product->id)
                     ->where('document_id', $image->id)
                     ->update([
-                        'is_main' => $index === (int)$request->main_image_index,
+                        'is_main' => $index === (int)$params['main_image_index'],
                         'updated_at' => new \DateTime(),
                     ]);
             }
 
-            foreach ($request->allFiles() as $index => $file) {
+            foreach ($files as $index => $file) {
                 $document = new Document();
                 $document->name = Uuid::generate(4);
                 $document->extension = $file->getClientOriginalExtension();
@@ -140,7 +140,7 @@ class ProductService
                 );
 
                 $document->setTempPath($path);
-                $document->setIsMain($index === (int)$request->main_image_index);
+                $document->setIsMain($index === (int)$params['main_image_index']);
 
                 $product->documents()->save($document, ['is_main' => $document->isMain()]);
             }

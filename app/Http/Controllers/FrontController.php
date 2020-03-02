@@ -14,4 +14,9 @@ class FrontController
     {
         return view('front.contacts');
     }
+
+    public function about()
+    {
+        return view('front.about');
+    }
 }

@@ -68,7 +68,7 @@ class CategoryController extends Controller
 
         try {
             /** @var Category $category */
-            $category = $categoryService->editCategory($request);
+            $category = $categoryService->editCategory($request->all(), $request->file('image'));
         } catch (\Exception $exception) {
             Log::error(
                 sprintf("Category creating error: %s", $exception->getMessage()),
@@ -111,7 +111,7 @@ class CategoryController extends Controller
         }
 
         try {
-            $category = $categoryService->editCategory($request, $categoryId);
+            $category = $categoryService->editCategory($request->all(), $request->file('image'), $categoryId);
         } catch (CategoryException $exception) {
             return response()->json([
                 'status' => 'error',

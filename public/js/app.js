@@ -5522,6 +5522,7 @@ __webpack_require__.r(__webpack_exports__);
 
             for (var key in _this2.product) {
               if (_this2.product[key] === null || _this2.product[key] === undefined) {
+                form_data.append(key, '');
                 continue;
               }
 

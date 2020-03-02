@@ -73,7 +73,7 @@ class ProductController extends Controller
 
         try {
             /** @var Product $product */
-            $product = $productService->editProduct($request);
+            $product = $productService->editProduct($request->all(), $request->allFiles());
         } catch (\Exception $exception) {
             Log::error(
                 sprintf("Product creating error: %s", $exception->getMessage()),
@@ -116,7 +116,7 @@ class ProductController extends Controller
         }
 
         try {
-            $product = $productService->editProduct($request, $productId);
+            $product = $productService->editProduct($request->all(), $request->allFiles(), $productId);
         } catch (ProductException $exception) {
             return response()->json([
                 'status' => 'error',

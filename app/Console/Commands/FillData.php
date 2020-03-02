@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Services\CategoryService;
 use App\Services\ProductService;
 use Illuminate\Console\Command;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class FillData extends Command
@@ -25,13 +25,26 @@ class FillData extends Command
     protected $description = 'Fill initial data';
 
     /**
+     * @var CategoryService
+     */
+    private $categoryService;
+
+    /**
+     * @var ProductService
+     */
+    private $productService;
+
+    /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(CategoryService $categoryService, ProductService $productService)
     {
         parent::__construct();
+
+        $this->categoryService = $categoryService;
+        $this->productService = $productService;
     }
 
     /**
@@ -39,29 +52,72 @@ class FillData extends Command
      *
      * @return mixed
      */
-    public function handle(CategoryService $categoryService, ProductService $productService)
+    public function handle()
     {
         $data = Storage::get('initial_data.json');
         $data = json_decode($data);
         $categories = $data->data;
 
-        foreach ($categories as $category) {
-            $this->processCategory($category);
+        DB::beginTransaction();
+
+        try {
+            foreach ($categories as $category) {
+//                $categoryNew = $this->categoryService->editCategory(
+//                    [
+//                        'name' => $category->name,
+//                        'image' => null,
+//                        'image_id' => null,
+//                        'alias' => null,
+//                        'description' => null,
+//                        'is_active' => 1
+//                    ],
+//                    null
+//                );
+//                $category->id = $categoryNew->id;
+                $this->processCategory($category);
+            }
+            DB::commit();
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            throw $exception;
         }
     }
 
-    private function processCategory($category)
+    private function processCategory($category, $parentId = null)
     {
+        $categoryNew = $this->categoryService->editCategory(
+            [
+                'name' => $category->name,
+                'parent' => $parentId,
+                'image' => null,
+                'image_id' => null,
+                'alias' => null,
+                'description' => null,
+                'is_active' => 1
+            ],
+            null
+        );
+
         if (isset($category->children)) {
             foreach ($category->children as $child) {
-                dump("Cat: " . $category->name);
-                $this->processCategory($child);
+                $this->processCategory($child, $categoryNew->id);
             }
         }
 
         if (isset($category->products)) {
             foreach ($category->products as $product) {
-                dump("Prod: ". $product->name);
+                $this->productService->editProduct(
+                    [
+                        'name' => $product->name,
+                        'is_active' => true,
+                        'description' => null,
+                        'price' => null,
+                        'old_images' => '',
+                        'categories' => (string)$categoryNew->id,
+                        'alias' => null,
+                    ],
+                    []
+                );
             }
         }
     }

@@ -215,6 +215,7 @@
 
                         for (let key in this.product ) {
                             if (this.product[key] === null || this.product[key] === undefined) {
+                                form_data.append(key, '');
                                 continue;
                             }
 

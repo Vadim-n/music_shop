@@ -14,6 +14,7 @@
 
 Route::get('/', 'FrontController@index')->name('main');
 Route::get('/contacts', 'FrontController@contacts')->name('contacts');
+Route::get('/about', 'FrontController@about')->name('about');
 
 Auth::routes();
 

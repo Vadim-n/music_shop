@@ -24,7 +24,7 @@ class CategoryService
      * @return Category
      * @throws CategoryException
      */
-    public function editCategory(Request $request, ?int $categoryId = null): Category
+    public function editCategory(array $params, $file, ?int $categoryId = null): Category
     {
         $category = $categoryId ? $category = Category::find($categoryId) : new Category();
 
@@ -36,15 +36,15 @@ class CategoryService
 
         try {
 
-            if (!$request->image && $request->image_id) {
-                $document = Document::find($request->image_id);
+            if (!$params['image'] && $params['image_id']) {
+                $document = Document::find($params['image_id']);
                 Storage::disk(DocumentStorage::LOCAL_DISK)->delete($document->getFullPath());
                 $category->image()->dissociate();
                 $category->save();
                 $document->delete();
             }
 
-            if ($request->file('image')) {
+            if ($file) {
 
                 if ($category->image) {
                     $document = $category->image;
@@ -53,8 +53,6 @@ class CategoryService
                     $category->save();
                     $document->delete();
                 }
-
-                $file = $request->file('image');
 
                 $document = new Document();
                 $document->name = Uuid::generate(4);
@@ -80,17 +78,17 @@ class CategoryService
 
             $alias = $this->checkAliasExistance(
                 Category::class,
-                $request->alias ? $request->alias : $this->getAlias($request->name),
+                $params['alias'] ? $params['alias'] : $this->getAlias($params['name']),
                 $categoryId
             );
 
-            $category->name = $request->name;
-            $category->short_name = $request->short_name;
-            $category->description = $request->description;
-            $category->is_active = $request->is_active === 'true' || $request->is_active == 1;
-            $category->created_by = Auth::user()->id;
+            $category->name = $params['name'];
+            $category->short_name = isset($params['short_name']) ? $params['short_name'] : null;
+            $category->description = $params['description'];
+            $category->is_active = $params['is_active'] === 'true' || $params['is_active'] == 1;
+            $category->created_by = Auth::user() ? Auth::user()->id : 1;
             $category->alias = $alias;
-            $category->parent_id = isset($request->parent) ? $request->parent : null;
+            $category->parent_id = isset($params['parent']) ? $params['parent'] : null;
             $category->save();
         } catch (\Exception $exception) {
             DB::rollBack();
