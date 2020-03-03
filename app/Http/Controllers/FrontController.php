@@ -19,4 +19,14 @@ class FrontController
     {
         return view('front.about');
     }
+
+    public function category(string $categoryAlias)
+    {
+        return view('front.category', compact('categoryAlias'));
+    }
+
+    public function product(string $categoryAlias, string $productAlias)
+    {
+        return view('front.product', compact('productAlias'));
+    }
 }

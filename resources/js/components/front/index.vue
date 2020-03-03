@@ -1,11 +1,9 @@
 <template>
     <div id="indexPage">
         <div class="content-top">
-            <h1>NEW RELEASED</h1>
-
             <div v-for="(category, index) in categories">
                 <div class="col-md-4 grid-top">
-                    <a href="single.html" class="b-link-stripe b-animate-go  thickbox">
+                    <a :href="'/' + category.alias" class="b-link-stripe b-animate-go thickbox">
                         <img class="img-responsive" :src="category.image" alt="">
                         <div class="b-wrapper">
                             <h3 class="b-animate b-from-left    b-delay03 ">
@@ -14,8 +12,7 @@
                         </div>
                     </a>
 
-
-                    <p><a href="single.html">{{category.name}}</a></p>
+                    <p><a :href="'/' + category.alias">{{category.name}}</a></p>
                 </div>
 
                 <div v-if="index % 3 === 2 || index === categories.length - 1" class="clearfix"></div>

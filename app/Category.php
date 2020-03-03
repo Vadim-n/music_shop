@@ -16,6 +16,11 @@ class Category extends Model
             ->withPivot('order');
     }
 
+    public function childrenCategories()
+    {
+        return $this->hasMany(Category::class, 'parent_id', 'id');
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

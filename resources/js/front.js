@@ -31,6 +31,8 @@ Vue.http.interceptors.push((request, next) => {
 
 // Front
 Vue.component('index-page', require('./components/front/index.vue').default);
+Vue.component('category-page', require('./components/front/category.vue').default);
+Vue.component('product-page', require('./components/front/product.vue').default);
 
 const app = new Vue({
     el: '#home',

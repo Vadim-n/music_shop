@@ -15,6 +15,8 @@
 Route::get('/', 'FrontController@index')->name('main');
 Route::get('/contacts', 'FrontController@contacts')->name('contacts');
 Route::get('/about', 'FrontController@about')->name('about');
+Route::get('/{categoryAlias}', 'FrontController@category')->name('category');
+Route::get('/{categoryAlias}/{productAlias}', 'FrontController@product')->name('product');
 
 Auth::routes();
 
@@ -64,6 +66,7 @@ Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'api'], function ()
 Route::group(['prefix' => 'api/client'], function () {
 //    Категории
     Route::get('/categories', 'API\Client\CategoryController@index')->name('api_client_categories_index');
+    Route::get('/category/{categoryAlias}', 'API\Client\CategoryController@get')->name('api_client_category_get');
 });
 
 Route::get('/document/{documentName}', 'FileController@download')->name('file_download');

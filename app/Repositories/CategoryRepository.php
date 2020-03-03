@@ -4,6 +4,7 @@
 namespace App\Repositories;
 
 
+use App\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -135,5 +136,67 @@ class CategoryRepository extends BaseRepository
                 return $item;
             });
 
+    }
+
+    /**
+     * @param string $alias
+     * @return array
+     */
+    public function getCategoryByAlias(string $alias): array
+    {
+        $category = Category::where('alias', $alias)->first();
+        $children = [];
+        $products = [];
+
+        if ($category) {
+            $children = DB::table('categories as c')
+                ->leftJoin('documents as d', 'c.image_id', 'd.id')
+                ->where('c.parent_id', $category->id)
+                ->select(
+                    'c.name',
+                    'c.alias',
+                    'd.name as document_name'
+                )
+                ->orderBy('c.order')
+                ->get()
+                ->transform(function ($item) {
+                    if ($item->document_name) {
+                        $item->image = route('file_download', ['documentName' => $item->document_name]);
+                    } else {
+                        $item->image = '/images/front/no_image.png';
+                    }
+
+                    unset($item->document_name);
+
+                    return $item;
+                });
+
+            $products = DB::table('products as p')
+                ->join('category_product as cp', 'p.id', 'cp.product_id')
+                ->leftJoin('document_product as dp', 'p.id', 'dp.product_id')
+                ->leftJoin('documents as d', 'dp.document_id', 'd.id')
+                ->where('cp.category_id', $category->id)
+                ->select(
+                    'p.name',
+                    'p.price',
+                    'p.alias',
+                    'd.name as document_name'
+                )
+                ->orderBy('p.order')
+                ->get()
+                ->transform(function ($item) {
+                    if ($item->document_name) {
+                        $item->image = route('file_download', ['documentName' => $item->document_name]);
+                    } else {
+                        $item->image = '/images/front/no_image.png';
+                    }
+
+                    unset($item->document_name);
+
+                    return $item;
+                });
+        }
+
+        return [$category, $children, $products];
     }
 }

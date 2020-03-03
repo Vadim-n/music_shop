@@ -2,6 +2,6 @@
 
 @section('content')
     <div id="home">
-        <index-page></index-page>
+        <category-page category-alias="{{$categoryAlias}}"></category-page>
     </div>
 @endsection

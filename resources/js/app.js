@@ -27,9 +27,6 @@ Vue.http.interceptors.push((request, next) => {
     next();
 });
 
-// Front
-Vue.component('index-page', require('./components/front/index.vue').default);
-
 // Categories
 Vue.component('category-add', require('./components/category/add.vue').default);
 Vue.component('category-index', require('./components/category/index.vue').default);
