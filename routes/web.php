@@ -11,7 +11,7 @@
 |
 */
 
-Auth::routes();
+Auth::routes(['register' => false]);
 
 // API admin
 Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'api'], function () {
