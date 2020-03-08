@@ -70,6 +70,8 @@ class ProductService
             $product->is_active = $params['is_active'] === 'true' || $params['is_active'] === '1';
             $product->created_by = Auth::user() ? Auth::user()->id : 1;
             $product->alias = $alias;
+            $product->meta_title = isset($params['meta_title']) ? $params['meta_title'] : null;
+            $product->meta_description = isset($params['meta_description']) ? $params['meta_description'] : null;
             $product->save();
 
 //            Categories

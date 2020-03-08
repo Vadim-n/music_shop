@@ -28,6 +28,16 @@
                        placeholder="Генерировать автоматически" id="alias" name="alias">
             </div>
             <div class="form-group">
+                <label for="alias">Мета-тег title</label>
+                <input v-model="category.meta_title" type="text" class="form-control"
+                       id="meta_title" name="meta_title">
+            </div>
+            <div class="form-group">
+                <label for="alias">Мета-тег description</label>
+                <input v-model="category.meta_description" type="text" class="form-control"
+                       id="meta_description" name="meta_description">
+            </div>
+            <div class="form-group">
                 <label for="alias">Родительская категория</label>
                 <custom-select
                     v-model="category.parent"
@@ -100,12 +110,12 @@
                         this.category.parent = response.data.parent;
                         this.loading = false;
                     } else {
-                        window.location = '/admin/categories';
-                        this.loading = false;
+                        // window.location = '/admin/categories';
+                        // this.loading = false;
                     }
                 }).catch(response => {
-                    window.location = '/admin/categories';
-                    this.loading = false;
+                    // window.location = '/admin/categories';
+                    // this.loading = false;
                 });
             }
         },
@@ -119,6 +129,8 @@
                     is_active: true,
                     image: null,
                     parent: null,
+                    meta_title: null,
+                    meta_description: null,
                 },
                 categories: [],
                 saving: false,

@@ -11,31 +11,7 @@
 |
 */
 
-
-Route::get('/', 'FrontController@index')->name('main');
-Route::get('/contacts', 'FrontController@contacts')->name('contacts');
-Route::get('/about', 'FrontController@about')->name('about');
-Route::get('/{categoryAlias}', 'FrontController@category')->name('category');
-Route::get('/{categoryAlias}/{productAlias}', 'FrontController@product')->name('product');
-
 Auth::routes();
-
-// WEB
-Route::group(['middleware' => ['auth', ], 'prefix' => 'admin'], function () {
-//    Товары
-    Route::get('/', 'ProductController@index')->name('products');
-    Route::get('/products/add', 'ProductController@add')->name('product_add');
-    Route::get('/products/order', 'ProductController@order')->name('product_order');
-    Route::get('/products/{productId}', 'ProductController@edit')->name('product_edit');
-
-//    Категории
-    Route::get('/categories', 'CategoryController@index')->name('categories');
-    Route::get('/categories/add', 'CategoryController@add')->name('category_add');
-    Route::get('/categories/order', 'CategoryController@order')->name('category_order');
-    Route::get('/categories/{categoryId}', 'CategoryController@edit')->name('category_edit');
-    Route::get('/categories/{categoryId}/products', 'CategoryController@products')->name('category_products');
-    Route::get('/categories/{categoryId}/products/order', 'CategoryController@productsOrder')->name('category_products_order');
-});
 
 // API admin
 Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'api'], function () {
@@ -67,6 +43,33 @@ Route::group(['prefix' => 'api/client'], function () {
 //    Категории
     Route::get('/categories', 'API\Client\CategoryController@index')->name('api_client_categories_index');
     Route::get('/category/{categoryAlias}', 'API\Client\CategoryController@get')->name('api_client_category_get');
+
+//    Товары
+    Route::get('/product/{productAlias}', 'API\Client\ProductController@get')->name('api_client_product_get');
 });
 
 Route::get('/document/{documentName}', 'FileController@download')->name('file_download');
+
+// WEB
+Route::group(['middleware' => ['auth', ], 'prefix' => 'admin'], function () {
+//    Товары
+    Route::get('/', 'ProductController@index')->name('products');
+    Route::get('/products/add', 'ProductController@add')->name('product_add');
+    Route::get('/products/order', 'ProductController@order')->name('product_order');
+    Route::get('/products/{productId}', 'ProductController@edit')->name('product_edit');
+
+//    Категории
+    Route::get('/categories', 'CategoryController@index')->name('categories');
+    Route::get('/categories/add', 'CategoryController@add')->name('category_add');
+    Route::get('/categories/order', 'CategoryController@order')->name('category_order');
+    Route::get('/categories/{categoryId}', 'CategoryController@edit')->name('category_edit');
+    Route::get('/categories/{categoryId}/products', 'CategoryController@products')->name('category_products');
+    Route::get('/categories/{categoryId}/products/order', 'CategoryController@productsOrder')->name('category_products_order');
+});
+
+// Client WEB
+Route::get('/', 'FrontController@index')->name('main');
+Route::get('/contacts', 'FrontController@contacts')->name('contacts');
+Route::get('/about', 'FrontController@about')->name('about');
+Route::get('/{categoryAlias}', 'FrontController@category')->name('category');
+Route::get('/{categoryAlias}/{productAlias}', 'FrontController@product')->name('product');

@@ -150,6 +150,7 @@ class CategoryController extends Controller
             )
             ->first();
 
+        $image = null;
         if ($category->image) {
             $image = [
                 'source' => route('file_download', ['documentName' => $category->image->name]),

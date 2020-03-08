@@ -34,6 +34,10 @@ Vue.component('index-page', require('./components/front/index.vue').default);
 Vue.component('category-page', require('./components/front/category.vue').default);
 Vue.component('product-page', require('./components/front/product.vue').default);
 
+// Common
+Vue.component('item-block', require('./components/front/itemBlock.vue').default);
+Vue.component('preloader', require('./components/front/preloader.vue').default);
+
 const app = new Vue({
     el: '#home',
     data: {

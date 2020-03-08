@@ -117,6 +117,7 @@ class CategoryRepository extends BaseRepository
         return DB::table('categories as c')
             ->leftJoin('documents as d', 'c.image_id', 'd.id')
             ->where('c.is_active', true)
+            ->whereNull('c.parent_id')
             ->select(
                 'c.alias',
                 'c.name',
@@ -171,11 +172,15 @@ class CategoryRepository extends BaseRepository
                     return $item;
                 });
 
+            $mainDocuments = DB::table('document_product')
+                ->where('is_main', true);
+
             $products = DB::table('products as p')
                 ->join('category_product as cp', 'p.id', 'cp.product_id')
-                ->leftJoin('document_product as dp', 'p.id', 'dp.product_id')
+                ->leftJoinSub($mainDocuments, 'dp', 'p.id', 'dp.product_id')
                 ->leftJoin('documents as d', 'dp.document_id', 'd.id')
                 ->where('cp.category_id', $category->id)
+                ->where('p.is_active', true)
                 ->select(
                     'p.name',
                     'p.price',

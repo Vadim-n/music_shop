@@ -36,7 +36,7 @@ class CategoryService
 
         try {
 
-            if (!$params['image'] && $params['image_id']) {
+            if (!$params['image'] && isset($params['image_id']) && $params['image_id']) {
                 $document = Document::find($params['image_id']);
                 Storage::disk(DocumentStorage::LOCAL_DISK)->delete($document->getFullPath());
                 $category->image()->dissociate();
@@ -89,6 +89,8 @@ class CategoryService
             $category->created_by = Auth::user() ? Auth::user()->id : 1;
             $category->alias = $alias;
             $category->parent_id = isset($params['parent']) ? $params['parent'] : null;
+            $category->meta_title = isset($params['meta_title']) ? $params['meta_title'] : null;
+            $category->meta_description = isset($params['meta_description']) ? $params['meta_description'] : null;
             $category->save();
         } catch (\Exception $exception) {
             DB::rollBack();

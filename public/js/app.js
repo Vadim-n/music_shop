@@ -2411,6 +2411,16 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     categoryId: {
@@ -2438,13 +2448,11 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
           _this.category.image = response.data.image;
           _this.category.parent = response.data.parent;
           _this.loading = false;
-        } else {
-          window.location = '/admin/categories';
-          _this.loading = false;
+        } else {// window.location = '/admin/categories';
+          // this.loading = false;
         }
-      })["catch"](function (response) {
-        window.location = '/admin/categories';
-        _this.loading = false;
+      })["catch"](function (response) {// window.location = '/admin/categories';
+        // this.loading = false;
       });
     }
   },
@@ -2457,7 +2465,9 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
         alias: "",
         is_active: true,
         image: null,
-        parent: null
+        parent: null,
+        meta_title: null,
+        meta_description: null
       },
       categories: [],
       saving: false,
@@ -2727,7 +2737,7 @@ __webpack_require__.r(__webpack_exports__);
           width: '1%',
           show: 'is_active = 1'
         }],
-        title: 'Активен',
+        title: 'Активна',
         align: 'right',
         sortable: true,
         searchable: true,
@@ -5704,7 +5714,7 @@ __webpack_require__.r(__webpack_exports__);
           width: '1%',
           show: 'is_active = 1'
         }],
-        title: 'Активна',
+        title: 'Активен',
         align: 'right',
         sortable: true,
         searchable: true,
@@ -84791,6 +84801,64 @@ var render = function() {
                   return
                 }
                 _vm.$set(_vm.category, "alias", $event.target.value)
+              }
+            }
+          })
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "form-group" }, [
+          _c("label", { attrs: { for: "alias" } }, [_vm._v("Мета-тег title")]),
+          _vm._v(" "),
+          _c("input", {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.category.meta_title,
+                expression: "category.meta_title"
+              }
+            ],
+            staticClass: "form-control",
+            attrs: { type: "text", id: "meta_title", name: "meta_title" },
+            domProps: { value: _vm.category.meta_title },
+            on: {
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.$set(_vm.category, "meta_title", $event.target.value)
+              }
+            }
+          })
+        ]),
+        _vm._v(" "),
+        _c("div", { staticClass: "form-group" }, [
+          _c("label", { attrs: { for: "alias" } }, [
+            _vm._v("Мета-тег description")
+          ]),
+          _vm._v(" "),
+          _c("input", {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.category.meta_description,
+                expression: "category.meta_description"
+              }
+            ],
+            staticClass: "form-control",
+            attrs: {
+              type: "text",
+              id: "meta_description",
+              name: "meta_description"
+            },
+            domProps: { value: _vm.category.meta_description },
+            on: {
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.$set(_vm.category, "meta_description", $event.target.value)
               }
             }
           })

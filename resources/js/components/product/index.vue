@@ -119,7 +119,7 @@
                                 show: 'is_active = 1'
                             }],
 
-                        title: 'Активна',
+                        title: 'Активен',
                         align: 'right',
                         sortable: true,
                         searchable: true,
